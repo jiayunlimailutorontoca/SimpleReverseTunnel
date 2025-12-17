@@ -46,6 +46,13 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y clang zlib1g-dev
+        
+    # Install ARM64 cross-compilation toolchain (Only for Linux ARM64 build)
+    - name: Install ARM64 Toolchain
+      if: matrix.rid == 'linux-arm64'
+      run: |
+        sudo apt-get install -y gcc-aarch64-linux-gnu llvm
+
 
     - name: Publish
       run: |
