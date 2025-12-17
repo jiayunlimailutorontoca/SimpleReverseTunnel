@@ -2,10 +2,12 @@ name: Cross-Platform Build
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    tags:
+      - 'v*' # Trigger on version tags, e.g. v1.0.0
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -63,3 +65,29 @@ jobs:
       with:
         name: SimpleReverseTunnel-${{ matrix.rid }}
         path: ./publish/${{ matrix.rid }}
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    
+    steps:
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+
+      - name: Create Release and Upload Assets
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            ./artifacts/SimpleReverseTunnel-win-x64/SimpleReverseTunnel-win-x64.exe
+            ./artifacts/SimpleReverseTunnel-win-x86/SimpleReverseTunnel-win-x86.exe
+            ./artifacts/SimpleReverseTunnel-linux-x64/SimpleReverseTunnel-linux-x64
+            ./artifacts/SimpleReverseTunnel-linux-arm64/SimpleReverseTunnel-linux-arm64
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
